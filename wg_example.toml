@@ -1,0 +1,27 @@
+[[clients]]
+_name = "wg_server"
+Address = "192.233.0.1/16"
+AllowedIPs = "192.233.0.0/16"
+PersistentKeepalive = 10
+ListenPort = 51820
+PostUp = "sh /etc/wireguard/wg0-up.sh"
+PostDown = "sh /etc/wireguard/wg0-down.sh"
+Endpoint = "127.0.0.1:51820"
+PublicKey = "pubkey"
+PrivateKey = "prikey"
+
+[[clients]]
+_name = "wg_client_1"
+Address = "192.233.1.1/16"
+PersistentKeepalive = 10
+PublicKey = "pubkey"
+PrivateKey = "prikey"
+DNS = "192.233.0.1"
+
+[[clients]]
+_name = "wg_client_2"
+Address = "192.233.1.2/16"
+PersistentKeepalive = 10
+PublicKey = "pubkey"
+PrivateKey = "prikey"
+DNS = "192.233.0.1"

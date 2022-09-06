@@ -1,0 +1,13 @@
+[package]
+name = "wireguard_generator"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+toml = "0.4.2"
+
+[[bin]]
+name = "wireguard_generator"
+path = "src/main.rs"
