@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -50,7 +51,7 @@ fn wg_genkey() -> (String, String) {
     );
 }
 
-fn read_config(path: &String) -> Value {
+fn read_config(path: &str) -> Value {
     let mut file = File::open(path).expect("Failed to open file");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
@@ -59,7 +60,7 @@ fn read_config(path: &String) -> Value {
     value
 }
 
-fn generate_config(name: &String, cfg: &Value) -> Vec<String> {
+fn generate_config(name: &str, cfg: &Value) -> Vec<String> {
     let clients = cfg["clients"].as_array().unwrap();
 
     let interface = clients
@@ -98,7 +99,8 @@ fn generate_config(name: &String, cfg: &Value) -> Vec<String> {
         .filter(|x| x["_name"].as_str().unwrap() != name)
         .for_each(|x| {
             config.push("".to_string());
-            let peer = generate_peer_config(&x["_name"].as_str().unwrap().to_string(), &cfg);
+            let peer =
+                generate_peer_config(interface, &x["_name"].as_str().unwrap().to_string(), &cfg);
             config.extend(peer);
         });
 
@@ -106,9 +108,13 @@ fn generate_config(name: &String, cfg: &Value) -> Vec<String> {
     config
 }
 
-fn generate_peer_config(name: &String, cfg: &Value) -> Vec<String> {
+fn generate_peer_config(
+    interface: &BTreeMap<String, Value>,
+    name: &str,
+    cfg: &Value,
+) -> Vec<String> {
     let clients = cfg["clients"].as_array().unwrap();
-    let interface = clients
+    let peer = clients
         .iter()
         .find(|x| x["_name"].as_str().unwrap() == name)
         .unwrap()
@@ -118,8 +124,7 @@ fn generate_peer_config(name: &String, cfg: &Value) -> Vec<String> {
 
     config.push("[Peer]".to_string());
 
-    interface
-        .iter()
+    peer.iter()
         .filter(|(k, _)| {
             vec![
                 "AllowedIPs",
@@ -143,5 +148,12 @@ fn generate_peer_config(name: &String, cfg: &Value) -> Vec<String> {
                 }
             ));
         });
+
+    if let Some(Value::Boolean(is_route)) = interface.get("_route") {
+        if *is_route {
+            config.push(format!("AllowedIPs = {}", peer["Address"].as_str().unwrap().split("/").take(1).collect::<Vec<&str>>().get(0).unwrap()));
+        }
+    }
+
     config
 }
